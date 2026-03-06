@@ -36,8 +36,8 @@ vet: ## Run go vet
 lint: ## Run golangci-lint (requires golangci-lint installed)
 	golangci-lint run ./...
 
-release: ## Create a GitHub release (requires GITHUB_TOKEN and a git tag)
-	$(GORELEASER) release --clean
+release: ## Create a GitHub release (requires TAG and GITHUB_TOKEN env vars)
+	@./scripts/release.sh
 
 release-snapshot: ## Build a local snapshot release (no publish)
 	$(GORELEASER) release --snapshot --clean
