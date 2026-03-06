@@ -1,8 +1,10 @@
-BINARY   := bin/dr-evaluation
-GOFLAGS  := -trimpath
-LDFLAGS  := -s -w
+BINARY      := bin/dr-evaluation
+GOFLAGS     := -trimpath
+LDFLAGS     := -s -w
+GORELEASER  ?= goreleaser
 
-.PHONY: all build test test-verbose test-cover clean fmt vet lint help
+.PHONY: all build test test-verbose test-cover clean fmt vet lint \
+        release release-snapshot release-dry-run help
 
 all: fmt vet test build ## Run fmt, vet, test, and build
 
@@ -23,7 +25,7 @@ test-cover: ## Run tests with coverage report
 	@echo "To view HTML report: go tool cover -html=coverage.out"
 
 clean: ## Remove build artifacts
-	rm -rf bin/ coverage.out
+	rm -rf bin/ coverage.out dist/
 
 fmt: ## Format source code
 	go fmt ./...
@@ -33,6 +35,16 @@ vet: ## Run go vet
 
 lint: ## Run golangci-lint (requires golangci-lint installed)
 	golangci-lint run ./...
+
+release: ## Create a GitHub release (requires GITHUB_TOKEN and a git tag)
+	$(GORELEASER) release --clean
+
+release-snapshot: ## Build a local snapshot release (no publish)
+	$(GORELEASER) release --snapshot --clean
+
+release-dry-run: ## Validate goreleaser config and simulate a release
+	$(GORELEASER) check
+	$(GORELEASER) release --snapshot --skip=publish --clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'

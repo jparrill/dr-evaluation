@@ -1,0 +1,114 @@
+# GoReleaser configuration for dr-evaluation
+# https://goreleaser.com
+
+version: 2
+
+project_name: dr-evaluation
+
+before:
+  hooks:
+    - go mod tidy
+    - go vet ./...
+    - go test ./... -count=1
+
+builds:
+  - id: dr-evaluation
+    main: .
+    binary: dr-evaluation
+
+    env:
+      - CGO_ENABLED=0
+
+    goos:
+      - linux
+      - darwin
+
+    goarch:
+      - amd64
+      - arm64
+
+    flags:
+      - -trimpath
+
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+
+archives:
+  - id: dr-evaluation
+    name_template: "dr-evaluation_{{.Version}}_{{.Os}}_{{.Arch}}"
+
+    files:
+      - README.md
+
+    wrap_in_directory: true
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - typo
+      - merge conflict
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+  groups:
+    - title: "New Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Other Changes"
+      order: 999
+
+release:
+  github:
+    owner: jparrill
+    name: dr-evaluation
+
+  draft: true
+  skip_upload: false
+
+  name_template: "dr-evaluation v{{.Version}}"
+
+  header: |
+    ## dr-evaluation v{{.Version}}
+
+    Velero backup/restore evaluation tool for OpenShift/Kubernetes clusters.
+
+    ### Downloads
+
+    Download the appropriate binary for your platform below.
+
+  footer: |
+    ## Usage
+
+    ```bash
+    # Analysis report (last N samples)
+    dr-evaluation analysis --kubeconfig /path/to/kubeconfig --sample 10
+
+    # Pre/post comparison report
+    dr-evaluation comparison --date "2026-03-05T00:00:00Z" --kubeconfig /path/to/kubeconfig
+    ```
+
+    ---
+
+    **Full Changelog**: https://github.com/jparrill/dr-evaluation/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
