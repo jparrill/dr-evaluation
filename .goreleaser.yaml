@@ -81,7 +81,7 @@ release:
     owner: jparrill
     name: dr-evaluation
 
-  draft: true
+  draft: false
   skip_upload: false
 
   name_template: "dr-evaluation v{{.Version}}"
